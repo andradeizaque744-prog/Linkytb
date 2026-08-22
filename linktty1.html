@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Desbloquear Link</title>
+    <!-- Ícones do FontAwesome para o símbolo do YouTube e do Cadeado -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #0f0f0f;
+            color: #ffffff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .card {
+            background-color: #1f1f1f;
+            border-radius: 16px;
+            padding: 25px;
+            width: 100%;
+            max-width: 420px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+            border: 1px solid #333;
+            text-align: center;
+        }
+
+        h2 {
+            font-size: 1.4rem;
+            margin-bottom: 20px;
+            color: #fff;
+        }
+
+        .btn-action {
+            width: 100%;
+            background-color: #ff0000;
+            color: white;
+            border: none;
+            padding: 14px 20px;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 15px;
+            transition: all 0.3s ease;
+            text-decoration: none;
+        }
+
+        .btn-action:hover {
+            background-color: #cc0000;
+        }
+
+        .btn-action.completed {
+            background-color: #28a745 !important;
+            cursor: default;
+        }
+
+        .btn-action:disabled {
+            cursor: not-allowed;
+            opacity: 0.9;
+        }
+
+        /* Área do Progresso */
+        .progress-container {
+            margin: 25px 0 20px 0;
+        }
+
+        .progress-text {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.9rem;
+            color: #aaa;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+
+        .progress-bar-bg {
+            width: 100%;
+            height: 10px;
+            background-color: #333;
+            border-radius: 5px;
+            overflow: hidden;
+        }
+
+        .progress-bar-fill {
+            height: 100%;
+            width: 0%;
+            background-color: #ff0000;
+            transition: width 0.4s ease, background-color 0.4s ease;
+        }
+
+        /* Botão Final de Unlock */
+        .btn-unlock {
+            width: 100%;
+            background-color: #444;
+            color: #888;
+            border: none;
+            padding: 16px 20px;
+            border-radius: 10px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: not-allowed;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+
+        .btn-unlock.unlocked {
+            background-color: #28a745;
+            color: #ffffff;
+            cursor: pointer;
+            box-shadow: 0 0 15px rgba(40, 167, 69, 0.4);
+        }
+
+        .btn-unlock.unlocked:hover {
+            background-color: #218838;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="card">
+        <h2>Complete as etapas para desbloquear</h2>
+
+        <!-- Botão 1: Se Inscrever -->
+        <button id="btn1" class="btn-action" onclick="startTask(1, 'https://youtube.com/@izaquinxiter7?si=oR4nh1Ewim5NoH_1')">
+            <i class="fab fa-youtube" style="font-size: 1.3rem;"></i>
+            <span id="text1">Se inscreva no meu canal</span>
+        </button>
+
+        <!-- Botão 2: Deixar o Like -->
+        <button id="btn2" class="btn-action" onclick="startTask(2, 'https://youtu.be/Ytol0lVNsCw?is=ctXktNQiE7wV6n-y')">
+            <i class="fab fa-youtube" style="font-size: 1.3rem;"></i>
+            <span id="text2">Deixar o Like</span>
+        </button>
+
+        <!-- Barra de Progresso -->
+        <div class="progress-container">
+            <div class="progress-text">
+                <span>Progresso</span>
+                <span id="step-count">0/2</span>
+            </div>
+            <div class="progress-bar-bg">
+                <div id="progress-fill" class="progress-bar-fill"></div>
+            </div>
+        </div>
+
+        <!-- Botão de Desbloqueio (COLOQUE SEU LINK DO MEDIAFIRE AQUI) -->
+        <a id="btn-unlock" class="btn-unlock" href="#" target="_blank" onclick="preventUnlock(event)">
+            <i id="unlock-icon" class="fas fa-lock"></i>
+            <span id="unlock-text">Bloqueado</span>
+        </a>
+    </div>
+
+    <script>
+        // CONFIGURAÇÃO: Insira aqui o link final (MediaFire, Google Drive, etc)
+        const LINK_FINAL = "https://www.mediafire.com"; 
+
+        let task1Done = false;
+        let task2Done = false;
+
+        function openYouTubeApp(url) {
+            // Extrai a parte final da URL para tentar abrir no App oficial
+            const cleanUrl = url.replace('https://', '').replace('http://', '');
+            
+            // Detecta dispositivo
+            const isAndroid = /Android/i.test(navigator.userAgent);
+            const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
+
+            if (isAndroid) {
+                // Tenta abrir no App do YouTube no Android
+                window.location.href = `intent://${cleanUrl}#Intent;package=com.google.android.youtube;scheme=https;end`;
+            } else if (isIOS) {
+                // Tenta abrir no App do YouTube no iOS
+                window.location.href = url.replace('https://youtube.com/', 'youtube://').replace('https://youtu.be/', 'youtube://');
+                setTimeout(() => { window.location.href = url; }, 1500);
+            } else {
+                // Fallback para Navegador PC
+                window.open(url, '_blank');
+            }
+        }
+
+        function startTask(taskNum, targetUrl) {
+            if ((taskNum === 1 && task1Done) || (taskNum === 2 && task2Done)) return;
+
+            const btn = document.getElementById(`btn${taskNum}`);
+            const textSpan = document.getElementById(`text1${taskNum === 1 ? '' : '2'}`);
+            
+            // Abre o aplicativo/link
+            openYouTubeApp(targetUrl);
+
+            // Inicia contagem regressiva de 15 segundos
+            btn.disabled = true;
+            let seconds = 15;
+            textSpan.innerText = `Checando... (${seconds}s)`;
+
+            const timer = setInterval(() => {
+                seconds--;
+                if (seconds > 0) {
+                    textSpan.innerText = `Checando... (${seconds}s)`;
+                } else {
+                    clearInterval(timer);
+                    // Concluir tarefa
+                    btn.classList.add('completed');
+                    btn.disabled = false;
+                    textSpan.innerHTML = '<i class="fas fa-check"></i> Concluído';
+
+                    if (taskNum === 1) task1Done = true;
+                    if (taskNum === 2) task2Done = true;
+
+                    updateProgress();
+                }
+            }, 1000);
+        }
+
+        function updateProgress() {
+            const countSpan = document.getElementById('step-count');
+            const fill = document.getElementById('progress-fill');
+            const unlockBtn = document.getElementById('btn-unlock');
+            const unlockIcon = document.getElementById('unlock-icon');
+            const unlockText = document.getElementById('unlock-text');
+
+            let completed = 0;
+            if (task1Done) completed++;
+            if (task2Done) completed++;
+
+            if (completed === 0) {
+                countSpan.innerText = "0/2";
+                fill.style.width = "0%";
+            } else if (completed === 1) {
+                countSpan.innerText = "1/2";
+                fill.style.width = "50%";
+            } else if (completed === 2) {
+                countSpan.innerText = "2/2";
+                fill.style.width = "100%";
+                fill.style.backgroundColor = "#28a745";
+
+                // Ativa o botão de Download
+                unlockBtn.classList.add('unlocked');
+                unlockBtn.href = LINK_FINAL;
+                unlockIcon.className = "fas fa-lock-open";
+                unlockText.innerText = "Abrir";
+            }
+        }
+
+        function preventUnlock(e) {
+            if (!task1Done || !task2Done) {
+                e.preventDefault();
+            }
+        }
+    </script>
+</body>
+</html>
